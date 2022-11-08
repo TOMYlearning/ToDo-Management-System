@@ -6,72 +6,79 @@ import java.util.ArrayList;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
+
+import com.dmm.task.data.entity.Tasks;
 
 @Controller
 public class MainController {
 	@GetMapping("/mainForm")
 	String loginForm(Model model) {
 		// ArrayListの宣言・初期化 //
-				ArrayList<ArrayList<LocalDate>> Month = new ArrayList<>();
-				
-				//日付指定 ////////////////////////////////////////////////////
-				int plusMonth = 0,minusMonth = 0,val = 0,countday = 0,countweek = 0,lastday = 0;
-				DayOfWeek dayOfWeek;
-				LocalDate week = LocalDate.now()
-						.plusMonths(plusMonth)
-						.minusMonths(minusMonth)
-						.withDayOfMonth(1);
-				System.out.println(week);
-				
-				LocalDate weekday  = LocalDate.now()
-						.withDayOfMonth(1);
-				
-				// 初週 ////////////////////////////////////////////////////////////
-				dayOfWeek = DayOfWeek.from(week);
-				val = dayOfWeek.getValue();
-				// ArrayListの宣言・初期化 //
-				ArrayList<LocalDate> weeks = new ArrayList<>();
-				// 1st week set //
-				for (countday = 0; countday <= 6 ; countday++) {
-					weekday  = LocalDate.now()
+		ArrayList<ArrayList<LocalDate>> month = new ArrayList<>();
+		ArrayList<LocalDate> week = new ArrayList<>();
+		//日付指定 ////////////////////////////////////////////////////
+		int plusMonth = 0,minusMonth = 0,val = 0,countday = 0,countweek = 0,lastday = 0;
+		DayOfWeek dayOfWeek;
+		LocalDate today = LocalDate.now()
+				.plusMonths(plusMonth)
+				.minusMonths(minusMonth)
+				.withDayOfMonth(1);
+		
+		LocalDate day  = LocalDate.now()
+				.withDayOfMonth(1);
+		
+		// 初週 ////////////////////////////////////////////////////////////
+		dayOfWeek = DayOfWeek.from(today);
+		val = dayOfWeek.getValue();
+		// ArrayListの宣言・初期化 //
+		week = new ArrayList<>();
+		// 1st week set //
+		for (countday = 0; countday <= 6 ; countday++) {
+			day  = LocalDate.now()
+					.plusMonths(plusMonth)
+					.minusMonths(minusMonth)
+					.withDayOfMonth(1)
+					.minusDays(val-countday);
+			week.add(day);
+			// 土曜日取得 //
+			if (countday == 6) {
+				lastday = day.getDayOfMonth() + 1;
+				// 要素の追加 //
+				month.add(week);
+			}
+		}
+		// 2週目以降 //////////////////////////////////////////////////////////
+		for (countweek = 1; countweek <= 6; countweek++) {
+			// ArrayListの宣言・初期化 //
+			week = new ArrayList<>();
+			if (today.getMonth() == day.getMonth()) {
+				for (countday = 0; countday <= 6; countday++) {
+					day = LocalDate.now()
 							.plusMonths(plusMonth)
 							.minusMonths(minusMonth)
-							.withDayOfMonth(1)
-							.minusDays(val-countday);
-					weeks.add(weekday);
-					// 土曜日取得 //
+							.withDayOfMonth(lastday)
+							.plusDays(countday);
+					week.add(day);
+					//土曜日取得 //
 					if (countday == 6) {
-						lastday = weekday.getDayOfMonth() + 1;
+						lastday += countday + 1;
 						// 要素の追加 //
-						Month.add(weeks);
+						month.add(week);
 					}
 				}
-				// 2週目以降 //////////////////////////////////////////////////////////
-				for (countweek = 1; countweek <= 6; countweek++) {
-					// ArrayListの宣言・初期化 //
-					weeks = new ArrayList<>();
-					if (week.getMonth() == weekday.getMonth()) {
-						for (countday = 0; countday <= 6; countday++) {
-							weekday = LocalDate.now()
-									.plusMonths(plusMonth)
-									.minusMonths(minusMonth)
-									.withDayOfMonth(lastday)
-									.plusDays(countday);
-							weeks.add(weekday);
-							//土曜日取得 //
-							if (countday == 6) {
-								lastday += countday + 1;
-								// 要素の追加 //
-								Month.add(weeks);
-							}
-						}
-					}
-				}
-				model.addAttribute("month",weekday.getMonth());
+			}
+		}
+		model.addAttribute("matrix",month);
+		
+		MultiValueMap<LocalDate, Tasks> tasks = new LinkedMultiValueMap<LocalDate, Tasks>();
 
-		return "main";
-	}
+		model.addAttribute("tasks",tasks);
+
+	return "main";
+	}	
 	
 }
 
